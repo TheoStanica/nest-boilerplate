@@ -1,4 +1,5 @@
 import {
+  IsAlpha,
   IsEmail,
   IsString,
   Matches,
@@ -10,6 +11,18 @@ export class SignUpCredentialsDto {
   @IsString()
   @IsEmail()
   email: string;
+
+  @IsString()
+  @IsAlpha()
+  @MinLength(3)
+  @MaxLength(20)
+  firstName: string;
+
+  @IsString()
+  @IsAlpha()
+  @MinLength(3)
+  @MaxLength(20)
+  lastName: string;
 
   @IsString()
   @MinLength(8)

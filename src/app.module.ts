@@ -1,15 +1,16 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
-import { typeOrmConfig } from './config/typeorm.config';
+import { MailerModule } from './mailer/mailer.module';
 
 @Global()
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    TypeOrmModule.forRoot(typeOrmConfig),
+    MongooseModule.forRoot(process.env.MONGO_URI),
     AuthModule,
+    MailerModule,
   ],
 })
 export class AppModule {}
