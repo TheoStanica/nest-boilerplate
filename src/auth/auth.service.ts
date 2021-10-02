@@ -1,9 +1,17 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { SignInCredentialsDto } from './dto/signInCredentials.dto';
 import { SignUpCredentialsDto } from './dto/signUpCredentials.dto';
 import { AuthRepository } from './auth.repository';
-import { UserDocument } from './schemas/user.schema';
+import { User, UserDocument } from './schemas/user.schema';
 import { MailerService } from 'src/mailer/mailer.service';
+import { ActivationCodeDto } from './dto/activationCode.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { AccountStatus } from './enums/accountStatus.enum';
 
 @Injectable()
 export class AuthService {
@@ -35,5 +43,9 @@ export class AuthService {
 
     // generate Access Token and refresh token?
     return username;
+  }
+
+  async activate(activationCodeDto: ActivationCodeDto): Promise<void> {
+    await this.userRepository.activate(activationCodeDto);
   }
 }

@@ -1,7 +1,14 @@
 import { SignInCredentialsDto } from './dto/signInCredentials.dto';
 import { SignUpCredentialsDto } from './dto/signUpCredentials.dto';
-import { Body, Controller, Post, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  ValidationPipe,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { ActivationCodeDto } from './dto/activationCode.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -13,7 +20,14 @@ export class AuthController {
   }
 
   @Post('/signin')
+  @HttpCode(200)
   signIn(@Body(ValidationPipe) signInCredentialsDto: SignInCredentialsDto) {
     return this.authService.signIn(signInCredentialsDto);
+  }
+
+  @Post('/activate')
+  @HttpCode(200)
+  activate(@Body(ValidationPipe) activationCodeDto: ActivationCodeDto) {
+    return this.authService.activate(activationCodeDto);
   }
 }

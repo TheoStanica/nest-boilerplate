@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
@@ -13,6 +14,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { ActivationCodeDto } from './dto/activationCode.dto';
 
 @Injectable()
 export class AuthRepository {
@@ -66,7 +68,23 @@ export class AuthRepository {
     }
   }
 
+  async activate(activationCodeDto: ActivationCodeDto): Promise<void> {
+    const { code } = activationCodeDto;
+    const user = await this.User.findOne({ activationCode: code });
+
+    if (!user || this.isExpired(user.activationExpirationDate)) {
+      throw new BadRequestException('Invalid activation code');
+    }
+
+    user.status = AccountStatus.ACTIVE;
+    await user.save();
+  }
+
   private hashPassword(password: string, salt: string): Promise<string> {
     return bcrypt.hash(password, salt);
+  }
+
+  private isExpired(date: Date): boolean {
+    return new Date(date) < new Date();
   }
 }

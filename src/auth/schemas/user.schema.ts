@@ -19,6 +19,14 @@ export type UserDocument = User &
       ret.id = ret._id;
       delete ret._id;
       delete ret.password;
+      delete ret.activationCode;
+      delete ret.activationExpirationDate;
+      delete ret.resetPasswordCode;
+      delete ret.resetPasswordExpirationDate;
+      delete ret.deleted;
+      delete ret.delatedAt;
+      delete ret.updatedAt;
+      delete ret.createdAt;
     },
   },
 })
