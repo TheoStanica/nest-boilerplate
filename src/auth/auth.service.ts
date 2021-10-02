@@ -12,12 +12,15 @@ import { ActivationCodeDto } from './dto/activationCode.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AccountStatus } from './enums/accountStatus.enum';
+import { JwtPayload } from './interfaces/jwtPayload.interface';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userRepository: AuthRepository,
     private readonly transporter: MailerService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signUp(signUpCredentialsDto: SignUpCredentialsDto): Promise<void> {
@@ -32,17 +35,19 @@ export class AuthService {
 
   async signIn(
     signInCredentialsDto: SignInCredentialsDto,
-  ): Promise<UserDocument> {
-    const username = await this.userRepository.validateUserPassword(
+  ): Promise<{ accessToken }> {
+    const user = await this.userRepository.validateUserPassword(
       signInCredentialsDto,
     );
 
-    if (!username) {
+    if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    const payload: JwtPayload = { userId: user.id };
+    const accessToken = await this.jwtService.signAsync(payload);
     // generate Access Token and refresh token?
-    return username;
+    return { accessToken };
   }
 
   async activate(activationCodeDto: ActivationCodeDto): Promise<void> {

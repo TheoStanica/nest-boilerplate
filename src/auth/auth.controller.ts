@@ -3,12 +3,15 @@ import { SignUpCredentialsDto } from './dto/signUpCredentials.dto';
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Post,
+  UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ActivationCodeDto } from './dto/activationCode.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -29,5 +32,11 @@ export class AuthController {
   @HttpCode(200)
   activate(@Body(ValidationPipe) activationCodeDto: ActivationCodeDto) {
     return this.authService.activate(activationCodeDto);
+  }
+
+  @Get('/test')
+  @UseGuards(AuthGuard())
+  test() {
+    return 'this is a test controller route';
   }
 }
