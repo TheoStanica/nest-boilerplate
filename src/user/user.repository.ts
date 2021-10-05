@@ -5,19 +5,19 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { SignInCredentialsDto } from './common/dto/signInCredentials.dto';
-import { SignUpCredentialsDto } from './common/dto/signUpCredentials.dto';
-import { ActivationCodeDto } from './common/dto/activationCode.dto';
-import { AccountStatus } from './common/enums/accountStatus.enum';
+import { SignInCredentialsDto } from '../auth/common/dto/signInCredentials.dto';
+import { SignUpCredentialsDto } from '../auth/common/dto/signUpCredentials.dto';
+import { ActivationCodeDto } from '../auth/common/dto/activationCode.dto';
+import { AccountStatus } from '../auth/common/enums/accountStatus.enum';
 import { User, UserDocument } from './schemas/user.schema';
-import { MongoErrors } from './common/enums/mongoErrors.enum';
+import { MongoErrors } from '../auth/common/enums/mongoErrors.enum';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
 @Injectable()
-export class AuthRepository {
+export class UserRepository {
   constructor(@InjectModel(User.name) private User: Model<UserDocument>) {}
 
   async signUp(
@@ -46,7 +46,7 @@ export class AuthRepository {
     }
   }
 
-  async validateUserPassword(
+  async validateUserCredentials(
     signInCredentials: SignInCredentialsDto,
   ): Promise<UserDocument> {
     const { email, password } = signInCredentials;

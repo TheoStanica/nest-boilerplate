@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from 'src/mailer/mailer.service';
-import { AuthRepository } from './auth.repository';
-import { SignUpCredentialsDto } from './common/dto/signUpCredentials.dto';
-import { ActivationCodeDto } from './common/dto/activationCode.dto';
+import { UserRepository } from './user.repository';
+import { SignUpCredentialsDto } from '../auth/common/dto/signUpCredentials.dto';
+import { ActivationCodeDto } from '../auth/common/dto/activationCode.dto';
 
 @Injectable()
-export class AuthService {
+export class UserService {
   constructor(
-    private readonly userRepository: AuthRepository,
+    private readonly userRepository: UserRepository,
     private readonly transporter: MailerService,
   ) {}
 

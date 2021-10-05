@@ -10,7 +10,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { AuthService } from './auth.service';
+import { UserService } from '../user/user.service';
 import { SignInGuard } from './common/guards/login.guard';
 import { AuthenticatedGuard } from './common/guards/authenticated.guard';
 import { ActivationCodeDto } from './common/dto/activationCode.dto';
@@ -18,11 +18,11 @@ import { SignUpCredentialsDto } from './common/dto/signUpCredentials.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private userService: UserService) {}
 
   @Post('/signup')
   signUp(@Body(ValidationPipe) signUpCredentialsDto: SignUpCredentialsDto) {
-    return this.authService.signUp(signUpCredentialsDto);
+    return this.userService.signUp(signUpCredentialsDto);
   }
 
   @UseGuards(SignInGuard)
@@ -33,7 +33,7 @@ export class AuthController {
   @Post('/activate')
   @HttpCode(200)
   activate(@Body(ValidationPipe) activationCodeDto: ActivationCodeDto) {
-    return this.authService.activate(activationCodeDto);
+    return this.userService.activate(activationCodeDto);
   }
 
   @Get('/test')
@@ -42,6 +42,6 @@ export class AuthController {
     console.log(request.session.id);
     console.log(session.passport);
     session.visits++;
-    return 'this is a test controller route';
+    return session.passport.user;
   }
 }
