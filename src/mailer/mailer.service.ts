@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import Mail from 'nodemailer/lib/mailer';
-import { EmailData } from './dto/emailData.dto';
+import { EmailData } from './common/dto/emailData.dto';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()

@@ -5,16 +5,16 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { SignInCredentialsDto } from './dto/signInCredentials.dto';
-import { SignUpCredentialsDto } from './dto/signUpCredentials.dto';
-import { AccountStatus } from './enums/accountStatus.enum';
+import { SignInCredentialsDto } from './common/dto/signInCredentials.dto';
+import { SignUpCredentialsDto } from './common/dto/signUpCredentials.dto';
+import { ActivationCodeDto } from './common/dto/activationCode.dto';
+import { AccountStatus } from './common/enums/accountStatus.enum';
 import { User, UserDocument } from './schemas/user.schema';
-import { MongoErrors } from './enums/mongoErrors.enum';
+import { MongoErrors } from './common/enums/mongoErrors.enum';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { ActivationCodeDto } from './dto/activationCode.dto';
 
 @Injectable()
 export class AuthRepository {
@@ -50,6 +50,7 @@ export class AuthRepository {
     signInCredentials: SignInCredentialsDto,
   ): Promise<UserDocument> {
     const { email, password } = signInCredentials;
+    console.log(email, password);
     const user = await this.User.findOne({ email: email });
 
     if (!user) {

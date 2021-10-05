@@ -7,26 +7,18 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schemas/user.schema';
 import { MailerModule } from 'src/mailer/mailer.module';
 import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { SessionSerializer } from './common/serializers/session.serializer';
+import { LocalStrategy } from './common/strategies/local.strategy';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    PassportModule.register({
-      defaultStrategy: 'jwt',
-    }),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: {
-        expiresIn: `${process.env.EXPIRES_IN} min`,
-      },
-    }),
+    PassportModule,
     MailerModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthRepository, JwtStrategy],
-  exports: [JwtStrategy, PassportModule],
+  providers: [AuthService, AuthRepository, LocalStrategy, SessionSerializer],
+  exports: [PassportModule],
 })
 export class AuthModule {}

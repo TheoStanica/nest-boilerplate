@@ -1,5 +1,5 @@
-import { AccountStatus } from '../enums/accountStatus.enum';
-import { AccountRole } from '../enums/accountRole.enum';
+import { AccountStatus } from '../common/enums/accountStatus.enum';
+import { AccountRole } from '../common/enums/accountRole.enum';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import * as mongoose_delete from 'mongoose-delete';
 import { Document } from 'mongoose';
