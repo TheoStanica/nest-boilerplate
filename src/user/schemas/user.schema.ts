@@ -49,13 +49,13 @@ export class User extends Document {
   @Prop({ enum: AccountStatus, default: AccountStatus.PENDING })
   status: String;
 
-  @Prop({ unique: true })
+  @Prop({ unique: true, sparse: true })
   activationCode: String;
 
   @Prop()
   activationExpirationDate: Date;
 
-  @Prop({ unique: true })
+  @Prop({ unique: true, sparse: true })
   resetPasswordCode: String;
 
   @Prop()

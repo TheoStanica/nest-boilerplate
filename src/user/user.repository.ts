@@ -3,11 +3,9 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { SignInCredentialsDto } from '../auth/common/dto/signInCredentials.dto';
 import { SignUpCredentialsDto } from '../auth/common/dto/signUpCredentials.dto';
-import { ActivationCodeDto } from '../auth/common/dto/activationCode.dto';
 import { AccountStatus } from '../auth/common/enums/accountStatus.enum';
 import { User, UserDocument } from './schemas/user.schema';
 import { MongoErrors } from '../auth/common/enums/mongoErrors.enum';
@@ -15,6 +13,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { ResetPasswordRequestDto } from 'src/auth/common/dto/resetPasswordRequest.dto';
+import { ResetPasswordCredentialsDto } from 'src/auth/common/dto/resetPasswordCredentials.dto';
+import { ActivateAccountRequestDto } from 'src/auth/common/dto/activateAccountRequest.dto';
 
 @Injectable()
 export class UserRepository {
@@ -34,7 +35,7 @@ export class UserRepository {
     user.firstName = firstName;
     user.lastName = lastName;
     user.activationCode = crypto.randomBytes(20).toString('hex');
-    user.activationExpirationDate = new Date(+new Date() + 10 * 60 * 1000);
+    user.activationExpirationDate = this.generateExpiration();
 
     try {
       return await user.save();
@@ -50,7 +51,6 @@ export class UserRepository {
     signInCredentials: SignInCredentialsDto,
   ): Promise<UserDocument> {
     const { email, password } = signInCredentials;
-    console.log(email, password);
     const user = await this.User.findOne({ email: email });
 
     if (!user) {
@@ -58,27 +58,95 @@ export class UserRepository {
     }
 
     if (await user.validatePassword(password)) {
-      // do something about this
-      if (user.status === AccountStatus.PENDING) {
-        throw new UnauthorizedException('Account not verified');
-      }
-
       return user;
     } else {
       return null;
     }
   }
 
-  async activate(activationCodeDto: ActivationCodeDto): Promise<void> {
-    const { code } = activationCodeDto;
-    const user = await this.User.findOne({ activationCode: code });
+  async activateRequest(
+    activateAccountRequestDto: ActivateAccountRequestDto,
+  ): Promise<UserDocument | null> {
+    const { email } = activateAccountRequestDto;
+    const user = await this.User.findOne({ email });
+
+    if (!user) {
+      return null;
+    }
+    if (user.status != AccountStatus.PENDING) {
+      throw new BadRequestException('Account already activated');
+    }
+
+    user.activationCode = crypto.randomBytes(20).toString('hex');
+    user.activationExpirationDate = this.generateExpiration();
+
+    try {
+      return await user.save();
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async activate(activationCode: string): Promise<void> {
+    const user = await this.User.findOne({ activationCode });
 
     if (!user || this.isExpired(user.activationExpirationDate)) {
       throw new BadRequestException('Invalid activation code');
     }
 
     user.status = AccountStatus.ACTIVE;
+    user.activationCode = undefined;
+    user.activationExpirationDate = undefined;
+
     await user.save();
+  }
+
+  async resetPasswordRequest(
+    resetPasswordRequestDto: ResetPasswordRequestDto,
+  ): Promise<UserDocument | null> {
+    const { email } = resetPasswordRequestDto;
+    const user = await this.User.findOne({ email });
+
+    if (!user) {
+      return null;
+    }
+
+    user.resetPasswordCode = crypto.randomBytes(20).toString('hex');
+    user.resetPasswordExpirationDate = this.generateExpiration();
+
+    try {
+      return await user.save();
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async resetPassword(
+    resetPasswordCredentialsDto: ResetPasswordCredentialsDto,
+    resetPasswordCode: string,
+  ): Promise<void> {
+    const { password } = resetPasswordCredentialsDto;
+    const user = await this.User.findOne({ resetPasswordCode });
+
+    if (!user || this.isExpired(user.resetPasswordExpirationDate)) {
+      throw new BadRequestException('Invalid reset code');
+    }
+
+    const salt = await bcrypt.genSalt(12);
+    const hashedPassword = await this.hashPassword(password, salt);
+    user.password = hashedPassword;
+    user.resetPasswordCode = undefined;
+    user.resetPasswordExpirationDate = undefined;
+
+    try {
+      await user.save();
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getById(id: string): Promise<UserDocument> {
+    return await this.User.findById(id);
   }
 
   private hashPassword(password: string, salt: string): Promise<string> {
@@ -87,5 +155,9 @@ export class UserRepository {
 
   private isExpired(date: Date): boolean {
     return new Date(date) < new Date();
+  }
+
+  private generateExpiration(): Date {
+    return new Date(+new Date() + 10 * 60 * 1000);
   }
 }
