@@ -90,13 +90,15 @@ export class UserRepository {
   async activate(activationCode: string): Promise<void> {
     const user = await this.User.findOne({ activationCode });
 
+    if (user.status != AccountStatus.PENDING) {
+      throw new BadRequestException('Account already activated');
+    }
+
     if (!user || this.isExpired(user.activationExpirationDate)) {
       throw new BadRequestException('Invalid activation code');
     }
 
     user.status = AccountStatus.ACTIVE;
-    user.activationCode = undefined;
-    user.activationExpirationDate = undefined;
 
     await user.save();
   }
@@ -135,8 +137,6 @@ export class UserRepository {
     const salt = await bcrypt.genSalt(12);
     const hashedPassword = await this.hashPassword(password, salt);
     user.password = hashedPassword;
-    user.resetPasswordCode = undefined;
-    user.resetPasswordExpirationDate = undefined;
 
     try {
       await user.save();

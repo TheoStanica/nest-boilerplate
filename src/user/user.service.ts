@@ -10,17 +10,15 @@ import { ActivateAccountRequestDto } from 'src/auth/common/dto/activateAccountRe
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly transporter: MailerService,
+    private readonly mailer: MailerService,
   ) {}
 
   async signUp(signUpCredentialsDto: SignUpCredentialsDto): Promise<void> {
     const user = await this.userRepository.signUp(signUpCredentialsDto);
 
-    this.transporter.sendEmail({
-      to: user.email,
-      subject: 'Activation',
-      html: '<h1>Hello</h1>',
-    });
+    if (user) {
+      this.mailer.sendActivationEmail(user);
+    }
   }
 
   async activateRequest(activateAccountRequestDto: ActivateAccountRequestDto) {
@@ -29,11 +27,7 @@ export class UserService {
     );
 
     if (user) {
-      this.transporter.sendEmail({
-        to: user.email,
-        subject: 'New Activation',
-        html: '<h1>New Activation</h1>',
-      });
+      this.mailer.sendActivationEmail(user);
     }
   }
 
@@ -48,11 +42,7 @@ export class UserService {
       resetPasswordRequestDto,
     );
     if (user) {
-      this.transporter.sendEmail({
-        to: user.email,
-        subject: 'Reset',
-        html: '<h1>Hello</h1>',
-      });
+      this.mailer.sendResetPasswordEmail(user);
     }
   }
 
