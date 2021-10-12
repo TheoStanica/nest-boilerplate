@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -16,10 +17,15 @@ import * as crypto from 'crypto';
 import { ResetPasswordRequestDto } from 'src/auth/common/dto/resetPasswordRequest.dto';
 import { ResetPasswordCredentialsDto } from 'src/auth/common/dto/resetPasswordCredentials.dto';
 import { ActivateAccountRequestDto } from 'src/auth/common/dto/activateAccountRequest.dto';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Injectable()
 export class UserRepository {
-  constructor(@InjectModel(User.name) private User: Model<UserDocument>) {}
+  constructor(
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    @InjectModel(User.name) private User: Model<UserDocument>,
+  ) {}
 
   async signUp(
     signUpCredentialsDto: SignUpCredentialsDto,
@@ -40,6 +46,14 @@ export class UserRepository {
     try {
       return await user.save();
     } catch (error) {
+      this.logger.warn(
+        `Failed to create an account. Data: ${JSON.stringify({
+          email,
+          firstName,
+          lastName,
+          code: error?.code,
+        })}`,
+      );
       if (error.code === MongoErrors.DUPLICATE) {
         throw new ConflictException('Email is being used');
       }
@@ -80,11 +94,7 @@ export class UserRepository {
     user.activationCode = crypto.randomBytes(20).toString('hex');
     user.activationExpirationDate = this.generateExpiration();
 
-    try {
-      return await user.save();
-    } catch (error) {
-      throw new InternalServerErrorException();
-    }
+    return await user.save();
   }
 
   async activate(activationCode: string): Promise<void> {
@@ -116,11 +126,7 @@ export class UserRepository {
     user.resetPasswordCode = crypto.randomBytes(20).toString('hex');
     user.resetPasswordExpirationDate = this.generateExpiration();
 
-    try {
-      return await user.save();
-    } catch (error) {
-      throw new InternalServerErrorException();
-    }
+    return await user.save();
   }
 
   async resetPassword(
@@ -138,11 +144,7 @@ export class UserRepository {
     const hashedPassword = await this.hashPassword(password, salt);
     user.password = hashedPassword;
 
-    try {
-      await user.save();
-    } catch (error) {
-      throw new InternalServerErrorException();
-    }
+    await user.save();
   }
 
   async getById(id: string): Promise<UserDocument> {

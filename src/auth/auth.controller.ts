@@ -42,7 +42,7 @@ export class AuthController {
   @Post('/signup')
   signUp(@Body(ValidationPipe) signUpCredentialsDto: SignUpCredentialsDto) {
     this.logger.info(
-      `Sign up request. Email: ${JSON.stringify({
+      `Received request to sign up. Email: ${JSON.stringify({
         email: signUpCredentialsDto.email,
       })}`,
     );
@@ -55,7 +55,7 @@ export class AuthController {
     @Body(ValidationPipe) activateAccountRequestDto: ActivateAccountRequestDto,
   ) {
     this.logger.info(
-      `Activate account request. Data: ${JSON.stringify(
+      `Received request to activate account. Data: ${JSON.stringify(
         activateAccountRequestDto,
       )}`,
     );
@@ -66,7 +66,7 @@ export class AuthController {
   @HttpCode(200)
   activate(@Param('id', ActivationCodePipe) activationCode: string) {
     this.logger.info(
-      `Activating account with activation code ${activationCode}`,
+      `Received request to activate account with activation code ${activationCode}`,
     );
     return this.userService.activate(activationCode);
   }
@@ -77,7 +77,7 @@ export class AuthController {
     @Body(ValidationPipe) resetPasswordRequestDto: ResetPasswordRequestDto,
   ) {
     this.logger.info(
-      `Reset password request. Data: ${JSON.stringify(
+      `Received request to reset password. Data: ${JSON.stringify(
         resetPasswordRequestDto,
       )}`,
     );
@@ -92,7 +92,7 @@ export class AuthController {
     resetPasswordCredentialsDto: ResetPasswordCredentialsDto,
   ) {
     this.logger.info(
-      `Resetting password using reset code ${resetPasswordCode}`,
+      `Received request to reset password using reset code ${resetPasswordCode}`,
     );
     return this.userService.resetPassword(
       resetPasswordCredentialsDto,
@@ -105,6 +105,7 @@ export class AuthController {
   test(@GetUser() user: UserDocument) {
     console.log(user);
     this.logger.info(`user ${user.id} requested his profile information`);
+    throw new ImATeapotException();
     return user;
   }
 }
